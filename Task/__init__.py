@@ -1,44 +1,33 @@
 from otree.api import *
-import numpy.random as rnd  
-import random 
-import pandas as pd 
+import numpy.random as rnd
+import random
+import pandas as pd
 
 doc = """
 Your app description
 """
 
-
 class C(BaseConstants):
     NAME_IN_URL = 'Task'
     PLAYERS_PER_GROUP = None
-    NUM_ROUNDS = 10
+    NUM_ROUNDS = 54  # 54 trials per participant
     NUM_PROUNDS = 3
-    # List of attributes (id)
-    lAttrID     = ['p','s','q']
-    lAttrNames  = ['Price','Sustainability','Quality']
-    # Template vars
-    lColNames   = ['Product 1','Product 2']
-
-
-    # In between round messages
+    lAttrID = ['p', 's', 'c']
+    lAttrNames = ['Price', 'Sustainability', 'Label']
+    lColNames = ['Product A', 'Product B']
     BetweenTrialMessages = {
-        "1": f"Now you will have {NUM_PROUNDS} practice rounds.", 
-        str(int(NUM_PROUNDS+1)): "The practice rounds are over."
-        }
-    
-    # Image 
-    imgCandidate    = "global/figures/candidate.png"
-    imgNumbers      = "global/figures/numbers/n_"
-    imgStars        = "global/figures/stars/star_"
-    imgLeafs        ="global/figures/leafs/leaf_"
-    imgNegatives    ="global/figures/negatives/neg-eco-"
-    # Confidence page
-    iLikertConf     = 7
-    sConfQuestion   = f"From 1 to {iLikertConf}, how confident are you on your choice?"
-    sLeftConf       = "Very unsure"
-    sRightConf      = "Very sure"
+        "1": f"Now you will have {NUM_PROUNDS} practice rounds.",
+        str(NUM_PROUNDS + 1): "The practice rounds are over."
+    }
+    imgLeafs = "global/figures/leafs/leaf_"
+    imgLabels = "global/figures/labels/label_"
+    imgPrices = "global/figures/prices/n_"
+    imgProducts = "global/figures/products/product_"
 
-
+    iLikertConf = 7
+    sConfQuestion = f"From 1 to {iLikertConf}, how confident are you on your choice?"
+    sLeftConf = "Very unsure"
+    sRightConf = "Very sure"
 
 
 class Subsession(BaseSubsession):
@@ -50,188 +39,232 @@ class Group(BaseGroup):
 
 
 class Player(BasePlayer):
-    # DVs
-    sChoice     = models.StringField()
-    dRT_dec     = models.FloatField()
+    sChoice = models.StringField()
+    dRT_dec = models.FloatField()
     iConfidence = models.IntegerField()
-    dRT_conf    = models.FloatField()
-
-    # 
-    P1=models.IntegerField()
-    P2=models.IntegerField()
-    S1=models.IntegerField()
-    S2=models.IntegerField()
-    Q1=models.IntegerField()
-    Q2=models.IntegerField()
-
-
-    # Attention variables
-    sNames      = models.LongStringField(blank=True)
-    sDT         = models.LongStringField(blank=True)
-
-    # # Timestamps
-    sStartDec   = models.StringField()
-    sEndDec     = models.StringField()
+    dRT_conf = models.FloatField()
+    P1 = models.IntegerField()
+    P2 = models.IntegerField()
+    S1 = models.IntegerField()
+    S2 = models.IntegerField()
+    Q1 = models.IntegerField()
+    Q2 = models.IntegerField()
+    sNames = models.LongStringField(blank=True)
+    sDT = models.LongStringField(blank=True)
+    sStartDec = models.StringField()
+    sEndDec = models.StringField()
     sStartCross = models.StringField()
-    sEndCross   = models.StringField()
+    sEndCross = models.StringField()
     sStartConf = models.StringField()
-    sEndConf   = models.StringField()
-
-
-    # Others 
+    sEndConf = models.StringField()
     sBetweenBtn = models.StringField()
+    Product1 = models.IntegerField()
+    Product2 = models.IntegerField()
 
 
-    # # Candidates
-    # sCandA      = models.StringField()
-    # sCandB      = models.StringField()
-    # sStartConf  = models.StringField()
-    # sEndConf    = models.StringField()
-    # # Other
+# Add this PARTICIPANT_FIELDS definition to include the custom field
+PARTICIPANT_FIELDS = ['lPos', 'iSelectedTrial', 'trials', 'sTreatment']
 
-    
+
 def creating_session(subsession):
-    # Load Session variables
-    s = subsession.session 
-    if subsession.round_number==1: 
-        for player in subsession.get_players():
+    if subsession.round_number == 1:
+        players = subsession.get_players()
+        for player in players:
             p = player.participant
 
-            #### Randomize order of attributes
-            lPos = C.lAttrID[:]         # Create hard copy of attributes
-            random.shuffle(lPos)        # Shuffle order
-            p.lPos = lPos               # Store it as a participant variable
-            #### Select trial for payment (from the first round after practice rounds to the last)
-            p.iSelectedTrial = random.randint(C.NUM_PROUNDS+1,C.NUM_ROUNDS)
-           
-           
-            if s.config['treatment']=='random':
-                p.sTreatment = random.choice(['Positive','Negative'])
-                print(f"Treatment assigned randomly: {p.sTreatment}")  # Print the randomly assigned treatment
-            else:
-                p.sTreatment = s.config['treatment']
-                print(f"Treatment assigned from config: {p.sTreatment}")  # Print the treatment from config
+            # Randomize order of attributes
+            lPos = C.lAttrID[:]
+            random.shuffle(lPos)
+            p.lPos = lPos
 
+            # Select trial for payment
+            p.iSelectedTrial = random.randint(C.NUM_PROUNDS + 1, C.NUM_ROUNDS)
+
+            # Generate 54 trials with equal likelihood of price conditions
+            trials = generate_trials()
+
+            # Assign the trials to the participant
+            p.trials = trials
 
     for player in subsession.get_players():
         p = player.participant
-        player.sBetweenBtn = random.choice(['left','right'])
+        player.sBetweenBtn = random.choice(['left', 'right'])
+
         if player.round_number <= C.NUM_PROUNDS:
             # Practice Trials
-            print(player.round_number, "practice")  
-            if player.round_number == 1:
-                lValues = [1,1, 1,1, 1,3]
-            elif player.round_number == 2:
-                lValues = [1,1, 1,3, 1,1] 
-            elif player.round_number == 3:
-                lValues = [3,1, 1,1, 1,1]
-    
+            lValues = {
+                1: [1, 2, 1, 1, 1, 1],
+                2: [1, 1, 1, 2, 1, 1],
+                3: [1, 1, 1, 1, 1, 2]
+            }.get(player.round_number, [1, 1, 1, 1, 1, 1])
+            p.sTreatment = 'Practice'
+            player.Product1, player.Product2 = 1, 2  # Practice products
         else:
             # Normal Trials
-            print(player.round_number, "normal")
-            lValues = [1,1, 1,1, 1,3] # lValues= p.database[int(player.round_number-4)]
-            print(lValues)
-        player.P1,player.P2, player.S1,player.S2,player.Q1,player.Q2 = lValues
+            trial_index = player.round_number - C.NUM_PROUNDS - 1
+            trial = p.trials[trial_index]
+            p.sTreatment = trial['condition']
+            lValues = trial['values']
+            lValues = [int(value) for value in lValues]  # Convert values to integers
+            player.Product1, player.Product2 = trial['products']
 
-        
-        #,player.S1,player.S2,player.P2,player.P2
+        player.P1, player.P2, player.S1, player.S2, player.Q1, player.Q2 = lValues
 
-def attributeList(lValues,lPos,treatment): # treatment
+
+def generate_trials():
+    # Initialize the combinations
+    combinations = []
+
+    # Define the price sets with image paths
+    price_sets = {
+        'TruePrice': ["7", "8", "9"],
+        'PlainPrice': ["4", "5", "6"],
+        'PriceRating': ["1", "2", "3"]
+    }
+    sustainability_values = ["1", "2", "3"]
+    credentials_values = ["1", "2"]  # Government and Commercial
+    product_pairs = [(1, 2), (3, 4), (5, 6)]
+
+    # Generate trials for each price condition
+    for condition, price_set in price_sets.items():
+        for v1 in range(3):
+            for v2 in range(3):
+                if v1 != v2:
+                    # Generate trials where price and sustainability change
+                    for s1 in range(3):
+                        for s2 in range(3):
+                            if s1 != s2:
+                                values = [int(price_set[v1]), int(price_set[v2]), int(sustainability_values[s1]), int(sustainability_values[s2]), 1, 1]
+                                products = random.choice(product_pairs)
+                                combinations.append({'values': values, 'condition': condition, 'products': products})
+
+                    # Generate trials where price and label change
+                    for q1 in range(2):
+                        for q2 in range(2):
+                            if q1 != q2:
+                                values = [int(price_set[v1]), int(price_set[v2]), 1, 1, int(credentials_values[q1]), int(credentials_values[q2])]
+                                products = random.choice(product_pairs)
+                                combinations.append({'values': values, 'condition': condition, 'products': products})
+
+    # Shuffle combinations to ensure random order
+    random.shuffle(combinations)
+
+    return combinations[:54]  # Return only the first 54 combinations to meet the required number of trials
+
+
+def attributeList(lValues, lPos, condition, product_pair):
     lAttributes = []
     lOrder = []
 
+    # Add product pair at the top without the 'Product' name
+    lAttributes.append({
+        'id': 'Product',
+        'name': '',
+        'lValues': [f"{C.imgProducts}{product_pair[0]}.png", f"{C.imgProducts}{product_pair[1]}.png"]
+    })
+
     for i in range(len(C.lAttrID)):
-        id                  = C.lAttrID[i]      
-        name                = C.lAttrNames[i]  
-        # Store the order of the list
+        id = C.lAttrID[i]
+        name = C.lAttrNames[i]
         lOrder.append(lPos.index(id))
         lPaths = []
         for v in lValues[i]:
-            if id=="q":
-                 lPaths.append(f"{C.imgStars}{v}.png")
-            elif id=="s" and treatment == "Positive":
+            if id == "s":
                 lPaths.append(f"{C.imgLeafs}{v}.png")
-            elif id=="s" and treatment == "Negative":
-                lPaths.append(f"{C.imgNegatives}{v}.png")
+            elif id == "p":
+                lPaths.append(f"{C.imgPrices}{v}.png")  # Use imgPrices for all price conditions
             else:
-                lPaths.append(f"{C.imgNumbers}{v}.png")
+                lPaths.append(f"{C.imgLabels}{v}.png")
 
-
-        # Create object with all the relevant variables
         Attr = {
-            'id'        : id,
-            'name'      : name,
-            'lValues'    : lPaths,
+            'id': id,
+            'name': name,
+            'lValues': lPaths,
         }
         lAttributes.append(Attr)
-    
-    lFinal = [ lAttributes[x] for x in lOrder]
+
+    lFinal = [lAttributes[0]] + [lAttributes[x + 1] for x in lOrder]
     return lFinal
 
-# PAGES
+class Message(Page):
+    template_name = 'global/Message.html'
 
-class Decision(Page):
-    form_model      = 'player'
-    form_fields     = [ 'sChoice']
-    # form_fields     = [ 'sStartDec','sEndDec', 'dRT_dec', 'sNames', 'sDT' , 'dTime2first', 'sChoice']
+    @staticmethod
+    def is_displayed(player: Player):
+        return player.round_number == C.NUM_PROUNDS
     
     @staticmethod
     def vars_for_template(player: Player):
-        # Order of attributes (from participant var)
+        return dict(
+            MessageText = 'The practice rounds are over. <br> The experiment will start now.'
+        )
+
+class Decision(Page):
+    form_model = 'player'
+    form_fields = ['sStartDec', 'sEndDec', 'dRT_dec', 'sNames', 'sDT', 'sChoice']
+
+    @staticmethod
+    def vars_for_template(player: Player):
         p = player.participant
         lPos = p.lPos
-        treatment=p.sTreatment   
-
-        # Candidates values          
-      
-        lValues = [[player.P1,player.P2],[player.S1,player.S2],[player.Q1,player.Q2]]
-        print(lValues)
+        condition = p.sTreatment
+        lValues = [
+            [player.P1, player.P2],
+            [player.S1, player.S2],
+            [player.Q1, player.Q2]
+        ]
+        product_pair = (player.Product1, player.Product2)
         return dict(
-            lAttr = attributeList(lValues,lPos,treatment), #treatment
+            lAttr=attributeList(lValues, lPos, condition, product_pair),
         )
-    
+
     @staticmethod
     def before_next_page(player: Player, timeout_happened):
-        p = player.participant
-        
-        if player.round_number == p.iSelectedTrial: 
-            p.bChoseA = player.iChooseB == 0   
-            print(f"Decision in selected trial recorded: {p.bChoseA}")
-
+        # Log the values to ensure they are being captured correctly
+        print('Before next page values:', {
+            'sNames': player.sNames,
+            'sDT': player.sDT,
+            'sChoice': player.sChoice
+        })
 
 class FixCross(Page):
     form_model = 'player'
-    form_fields = [ 'sStartCross','sEndCross' ]
+    form_fields = ['sStartCross', 'sEndCross']
     template_name = 'global/FixCross.html'
 
 
 class SideButton(Page):
     form_model = 'player'
-    form_fields = [ 'sStartCross','sEndCross' ]
+    form_fields = ['sStartCross', 'sEndCross']
     template_name = 'global/SideButton.html'
 
     @staticmethod
     def js_vars(player: Player):
-        
         return dict(
-            sPosition = player.sBetweenBtn
+            sPosition=player.sBetweenBtn
         )
 
 
 class Confidence(Page):
-    form_model      = 'player'
-    form_fields     = [ 'sStartConf','sEndConf', 'dRT_conf','iConfidence']
-    template_name   = 'global/Confidence.html'
-    
+    form_model = 'player'
+    form_fields = ['sStartConf', 'sEndConf', 'dRT_conf', 'iConfidence']
+    template_name = 'global/Confidence.html'
+
     @staticmethod
     def vars_for_template(player: Player):
-        p = player.participant
         return dict(
-            lScale = list(range(1,C.iLikertConf+1))
+            lScale=list(range(1, C.iLikertConf + 1))
         )
 
 
+page_sequence = [SideButton, Decision, Confidence, Message]
 
-page_sequence = [SideButton, Decision, Confidence]
-
- 
+# Ensure that SESSION_CONFIGS includes the app
+SESSION_CONFIGS = [
+    dict(
+        name='task',
+        display_name='Task',
+        num_demo_participants=1,
+        app_sequence=['Task']
+    ),
+]

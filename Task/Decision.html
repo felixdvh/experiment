@@ -1,17 +1,17 @@
 {{ extends "global/Page.html" }}
 
 {{ block styles }}
-    <link href="{% static 'global/css/mousetrack.css' %}" rel="stylesheet">
+<link href="{% static 'global/css/mousetrack.css' %}" rel="stylesheet">
 {{ endblock }}
 
 {{ block scripts }}
-    <script src="{% static 'global/js/mousetrack.js' %}"></script>  
+<script src="{% static 'global/js/mousetrack.js' %}"></script>
 
 {{ endblock }}
 
 {{ block PageContent }}
-<div class="test-text" id="test-text"></div>
 
+<div class="test-text" id="test-text"></div>
 <div class="table-container" id="table-container">
     <div class="row-colnames top" id="row-colnames"> 
         <div class="table-item right">  </div>
@@ -34,11 +34,8 @@
                 <button type="button" class="dec-btn" id="btn-{{ col }}" >  {{ col }} </button> 
             </div>
         {{ endfor }}
-
-       
-    </div>
 </div>
-
+</div>
 <input type="hidden" id="sStart" name="sStartDec">
 <input type="hidden" id="sEnd" name="sEndDec">
 <input type="hidden" id="dRT" name="dRT_dec">
@@ -46,7 +43,4 @@
 <input type="hidden" id="sDT" name="sDT">
 <input type="hidden" id="sDec" name="sChoice">
 <input type="hidden" id="time2first" name="dTime2first">
-
-
-
 {{ endblock }}

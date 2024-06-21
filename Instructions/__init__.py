@@ -29,28 +29,30 @@ class C(BaseConstants):
     pathData            = '_static/global/files/Data4Exp.csv'
     imgCandidate        = "global/figures/candidate.png"
     imgNumbers          = "global/figures/numbers/n_"
-    imgStars          = "global/figures/stars/star_"
-    imgLeafs        ="global/figures/leafs/leaf_"
-    imgNegatives    ="global/figures/negatives/neg-eco-"
+    imgStars            = "global/figures/stars/star_"
+    imgLeafs            ="global/figures/leafs/leaf_"
+    imgNegatives        ="global/figures/negatives/neg-eco-"
     OneTreePlanted      = "global/figures/Logo_OneTreePlanted.png"
-    star_symbol                = "global/figures/one_star.png"
-    leaf_symbol                = "global/figures/one_leaf.png"
-    neg_symbol             = "global/figures/one-neg.png"
-    revealed_pos       = "global/figures/revealed_task_pos.png"
-    revealed_neg        = "global/figures/revealed_task_neg.png"
-    circled_task_pos        = "global/figures/circled_task_pos.png"
-    circled_task_neg        = "global/figures/circled_task_neg.png"
-    TreatPos          = "global/figures/TreatPos.gif"
-    TreatNeg          = "global/figures/TreatNeg.gif"
+    star_symbol         = "global/figures/one_star.png"
+    leaf_symbol         = "global/figures/one_leaf.png"
+    neg_symbol          = "global/figures/one-neg.png"
+    revealed            = "global/figures/revealed_task.png"
+    circled_task        = "global/figures/circled_task.png"
+    hoover              = "global/figures/hoover.gif"
     one_leaf            ="global/figures/leafs/leaf_1.png"
     two_leaf            ="global/figures/leafs/leaf_2.png"
     three_leaf          ="global/figures/leafs/leaf_3.png"
     one_neg             ="global/figures/negatives/neg-eco-1.png"
     two_neg             ="global/figures/negatives/neg-eco-2.png"
     three_neg           ="global/figures/negatives/neg-eco-3.png"
+    apple               ="global/figures/products/apple_one.png"
+    solidaridad         ="global/figures/solidaridad.png"
+    label_government    ="global/figures/labels/label_1.png"
+    label_commercial    ="global/figures/labels/label_2.png"
+
 
     # Links 
-    # You might want to have different links, for when they submit differen answers
+    # You might want to have different links, for when they submit different answers
     sLinkReturn         = "https://app.prolific.com/submissions/complete?cc=XXXXX"
     sLinkReturnCal      = "https://app.prolific.com/submissions/complete?cc=YYYYY"
     sLinkOtherBrowser   = "https://YOUR-EXPERIMENT.herokuapp.com/room/room1"
@@ -101,7 +103,7 @@ class Instructions(Page):
         p = player.participant
         return dict(
             lSolutions = [
-                'a','c', 'a', str(C.iPracticeRounds) # Solutions to control questions
+                'a', 'b', 'a', str(C.iPracticeRounds) # Solutions to control questions
             ]
         )
     

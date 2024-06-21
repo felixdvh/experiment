@@ -1,47 +1,51 @@
 // Initialize global variables 
-var     lButtonsMT, timeEnter;
-var     sNames  = '';
-var     sDT     = '';
-var     sCurrent = '';
-var     sTypeReveal = 'cell';
+var lButtonsMT, timeEnter;
+var sNames = '';
+var sDT = '';
+var sCurrent = '';
+var sTypeReveal = 'cell';
 
 // When page is loaded
 window.addEventListener('DOMContentLoaded', () => {
-
     // Activate all mousetracking buttons
     lButtonsMT = document.getElementsByClassName(sTypeReveal);
-    for (let i=0; i<lButtonsMT.length; i++) {
+    for (let i = 0; i < lButtonsMT.length; i++) {
         let elem = lButtonsMT[i];
-        console.log(elem.title)
-        CreateMT(elem,elem.id);
+        CreateMT(elem, elem.id);
     }
 
     // Decision Buttons 
     lDecBtns = document.getElementsByClassName("dec-btn");
-    for (let i=0; i<lDecBtns.length; i++) {
-        let elem    = lDecBtns[i];
+    for (let i = 0; i < lDecBtns.length; i++) {
+        let elem = lDecBtns[i];
         // Get column name from ID
-        let dec     = elem.id.split('-')[1];
-        console.log(dec)
+        let dec = elem.id.split('-')[1];
         // Add on-click function 
-        elem.addEventListener('click',()=>{
-            console.log('dec')
+        elem.addEventListener('click', () => {
             document.getElementById('sDec').value = dec;
+            document.getElementById('sNames').value = sNames;
+            document.getElementById('sDT').value = sDT;
+            console.log('Submitting form with values:', {
+                dec: dec,
+                sNames: sNames,
+                sDT: sDT
+            });
             endPage();
-        })
-        
+        });
     }
     // Begin timer
     timeEnter = new Date();
-    setInterval(()=>{
-        if (sCurrent!='') {
+    setInterval(() => {
+        if (sCurrent != '') {
             let now = new Date();
-            let dt = (now - timeEnter)/1000;
-            document.getElementById('test-text').innerHTML = `${sCurrent}:${dt}`
+            let dt = (now - timeEnter) / 1000;
+            document.getElementById('test-text').innerHTML = `${sCurrent}:${dt}`;
         }
-    },50)
-});
+    }, 50);
 
+    // Make sure the first row is visible when the page loads
+    showFirstRow();
+});
 
 // *********************************************************************
 // Function Name:   updateMT
@@ -54,24 +58,26 @@ window.addEventListener('DOMContentLoaded', () => {
 // *********************************************************************
 
 function updateMT(id) {
+    console.log('updateMT called with id:', id);
     // Store/update current time
     let now = new Date();
     let dt = now - timeEnter;
     timeEnter = now;
     // Save dwell time on AOI
-    if (sDT.length>0) {
-        sDT =  `${sDT},${dt}`;
+    if (sDT.length > 0) {
+        sDT = `${sDT},${dt}`;
     } else {
         sDT = `${dt}`;
         // If first fixation, also record time to first fixation
         document.getElementById('time2first').value = timeEnter - dt - startTime;
     }
     // Update to current label
-    if (sNames.length>0) {
-        sNames = `${sNames},${sCurrent}`;
+    if (sNames.length > 0) {
+        sNames = `${sNames},${id}`;
     } else {
-        sNames = `${sCurrent}`;
+        sNames = `${id}`;
     }
+    console.log('sNames updated to:', sNames);
 }
 
 // *********************************************************************
@@ -84,15 +90,29 @@ function updateMT(id) {
 // returns:         void
 // *********************************************************************
 
-
 function hideEverything() {
-    // get all elements to be hidden
-    lTgt = document.getElementsByClassName('mt-tgt');
-    // add hidden class
-    for (let i=0;i<lTgt.length; i++) {
-        lTgt[i].classList.add('hide');
-    }
+    var tableContainer = document.getElementById('table-container');
+    var rows = tableContainer.getElementsByClassName('row');
 
+    // Iterate through all rows to identify and hide the second and third rows of lValues
+    for (let i = 0; i < rows.length; i++) {
+        var row = rows[i];
+        var cells = row.getElementsByClassName('mt-tgt');
+
+        // Check if the row contains lValues by the presence of mt-tgt cells
+        if (cells.length > 0) {
+            // Keep the first row visible
+            if (i == 0) {
+                for (let j = 0; j < cells.length; j++) {
+                    cells[j].classList.remove('hide');
+                }
+            } else {
+                for (let j = 0; j < cells.length; j++) {
+                    cells[j].classList.add('hide');
+                }
+            }
+        }
+    }
 }
 
 // *********************************************************************
@@ -105,12 +125,10 @@ function hideEverything() {
 // returns:         void
 // *********************************************************************
 
-
 function activateMT(tgt) {
-    console.log(tgt)
     hideEverything();
     let lTgt = document.getElementsByClassName(`mt-tgt ${tgt}`);
-    for (let i=0;i<lTgt.length; i++) {
+    for (let i = 0; i < lTgt.length; i++) {
         lTgt[i].classList.remove('hide');
     }
 }
@@ -125,19 +143,43 @@ function activateMT(tgt) {
 // returns:         void
 // *********************************************************************
 
-function CreateMT(elem,tgt) {
-    elem.addEventListener("mouseenter", ()=>{
-        elem.classList.add('hover');
-        timeEnter = new Date();
-        sCurrent = elem.id;
-        activateMT(tgt)
-    })
-    elem.addEventListener("mouseleave", ()=>{
-        elem.classList.remove('hover');
-        sCurrent = '';
-        updateMT(elem.id)
-        hideEverything();
-    })
+function CreateMT(elem, tgt) {
+    if (elem.parentNode.rowIndex !== 0) { // Skip adding hover events for the first row
+        elem.addEventListener("mouseenter", () => {
+            elem.classList.add('hover');
+            timeEnter = new Date();
+            sCurrent = elem.id;
+            console.log('mouseenter:', sCurrent);
+            activateMT(tgt);
+        });
+        elem.addEventListener("mouseleave", () => {
+            elem.classList.remove('hover');
+            updateMT(elem.id);
+            sCurrent = ''; // Move this line below updateMT to ensure the current element is recorded
+            console.log('mouseleave:', sCurrent);
+            hideEverything();
+            showFirstRow(); // Ensure the first row is always visible
+        });
+    }
+}
+
+// *********************************************************************
+// Function Name:   showFirstRow
+// Functionality:   
+//                  Ensures the first row is always visible
+//
+// input:           none
+//
+// returns:         void
+// *********************************************************************
+
+function showFirstRow() {
+    var tableContainer = document.getElementById('table-container');
+    var firstRow = tableContainer.getElementsByClassName('row')[0];
+    var cells = firstRow.getElementsByClassName('mt-tgt');
+    for (let i = 0; i < cells.length; i++) {
+        cells[i].classList.remove('hide');
+    }
 }
 
 // *********************************************************************
@@ -150,11 +192,11 @@ function CreateMT(elem,tgt) {
 // returns:         void
 // *********************************************************************
 
-
 function endDecPage(dec) {
     // Store all mousetracking variables + decision for the page
     document.getElementById('iDec').value = dec;
     document.getElementById('sNames').value = sNames;
     document.getElementById('sDT').value = sDT;
+    console.log('endDecPage:', dec, sNames, sDT);
     endPage();
 }
