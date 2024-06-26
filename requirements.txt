@@ -2,8 +2,6 @@ otree>=5.0.0a21  #otree >= 5.10.4
 psycopg2>=2.8.4
 pandas>=2.2.2
 numpy>=1.26.4
-numpy
-otree
 
 ### Task
 #numpy.random
