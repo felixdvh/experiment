@@ -72,11 +72,6 @@ def creating_session(subsession):
         for player in players:
             p = player.participant
 
-            # Randomize order of attributes
-            lPos = C.lAttrID[:]
-            random.shuffle(lPos)
-            p.lPos = lPos
-
             # Select trial for payment
             p.iSelectedTrial = random.randint(C.NUM_PROUNDS + 1, C.NUM_ROUNDS)
 
@@ -186,18 +181,20 @@ def attributeList(lValues, lPos, condition, product_pair):
     lFinal = [lAttributes[0]] + [lAttributes[x + 1] for x in lOrder]
     return lFinal
 
+
 class Message(Page):
     template_name = 'global/Message.html'
 
     @staticmethod
     def is_displayed(player: Player):
         return player.round_number == C.NUM_PROUNDS
-    
+
     @staticmethod
     def vars_for_template(player: Player):
         return dict(
-            MessageText = 'The practice rounds are over. <br> The experiment will start now.'
+            MessageText='The practice rounds are over. <br> The experiment will start now.'
         )
+
 
 class Decision(Page):
     form_model = 'player'
@@ -206,7 +203,8 @@ class Decision(Page):
     @staticmethod
     def vars_for_template(player: Player):
         p = player.participant
-        lPos = p.lPos
+        lPos = random.sample(C.lAttrID, len(C.lAttrID))  # Randomize order of attributes per round
+        p.lPos = lPos
         condition = p.sTreatment
         lValues = [
             [player.P1, player.P2],
@@ -226,6 +224,7 @@ class Decision(Page):
             'sDT': player.sDT,
             'sChoice': player.sChoice
         })
+
 
 class FixCross(Page):
     form_model = 'player'
