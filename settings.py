@@ -69,7 +69,7 @@ SECRET_KEY = environ.get('DJANGO_SECRET_KEY', 'default-secret-key')
 # Database configuration
 DATABASES = {
     'default': dj_database_url.config(
-        default=f'sqlite:///{os.path.join(os.path.dirname(__file__), 'db.sqlite3')}',
+        default=f"sqlite:///{os.path.join(os.path.dirname(__file__), 'db.sqlite3')}",
         conn_max_age=600,  # Keep database connections open for 10 minutes
         ssl_require=True   # Require SSL for PostgreSQL on Heroku
     )
