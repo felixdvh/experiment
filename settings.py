@@ -54,7 +54,6 @@ ROOMS = [
     dict(
         name='experimentfelix',
         display_name='Experiment Felix',
-        use_secure_urls=False,  # Automatically generate secure URLs for participants
     ),
 ]
 
