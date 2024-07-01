@@ -22,7 +22,7 @@ SESSION_CONFIGS = [
         name='Session',
         app_sequence=['InformedConsent', 'Instructions', 'Task', 'Questionnaire'],
         num_demo_participants=1,
-        treatment='random',  # Randomize between-subject treatment.
+        treatment='random',
     ),
 ]
 
@@ -31,15 +31,14 @@ SESSION_CONFIG_DEFAULTS = dict(
 )
 
 PARTICIPANT_FIELDS = [
-    'lPos',                 # Position of attributes 
-    'iSelectedTrial',       # Trial selected for payment
-    'bTimeout',             # Participant timed-out
-    'sTreatment',           # Treatment name
+    'lPos',
+    'iSelectedTrial',
+    'bTimeout',
+    'sTreatment',
 ]
 SESSION_FIELDS = []
 
 LANGUAGE_CODE = 'en'
-
 REAL_WORLD_CURRENCY_CODE = 'USD'
 USE_POINTS = True
 
@@ -53,10 +52,16 @@ SECRET_KEY = '5401288888583'
 ROOMS = [
     dict(
         name='experimentfelix',
-        display_name='Experiment Felix',
+        display_name='Experiment Felix Room',
         use_secure_urls=True,  # Automatically generate secure URLs for participants
-        participant_label_file=None,  # This should be set to None when use_secure_urls is True
     ),
 ]
 
 OTREE_PRODUCTION = environ.get('OTREE_PRODUCTION', '1') == '1'
+
+# Static files settings
+STATIC_ROOT = 'staticfiles'
+STATIC_URL = '/static/'
+
+# Optional: Enable Sentry for error tracking
+OTREE_SENTRY_DSN = environ.get('OTREE_SENTRY_DSN')
