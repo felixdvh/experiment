@@ -58,11 +58,11 @@
         "confirmRequired" : true
     }, 
     {
-        "question": "How much do environmental issues concern you in your everyday life?",
+        "question": "How important is sustainability to you when making purchasing decisions?",
         "name": "environment",
         "type": "Likert",
         "likertMax": 10,
-        "limits": ["Not concerned at all","Extremely concerned"],
+        "limits": ["Not at all important","Extremely important"],
         "confirmRequired" : true
     },    
     {

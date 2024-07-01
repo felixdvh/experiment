@@ -10,7 +10,7 @@ Your app description
 class C(BaseConstants):
     NAME_IN_URL = 'Task'
     PLAYERS_PER_GROUP = None
-    NUM_ROUNDS = 54  # 54 trials per participant
+    NUM_ROUNDS = 33  # Adjusted to match the number of unique trials
     NUM_PROUNDS = 3
     lAttrID = ['p', 's', 'c']
     lAttrNames = ['Price', 'Sustainability', 'Label']
@@ -24,12 +24,6 @@ class C(BaseConstants):
     imgPrices = "global/figures/prices/n_"
     imgProducts = "global/figures/products/product_"
 
-    iLikertConf = 7
-    sConfQuestion = f"From 1 to {iLikertConf}, how confident are you on your choice?"
-    sLeftConf = "Very unsure"
-    sRightConf = "Very sure"
-
-
 class Subsession(BaseSubsession):
     pass
 
@@ -41,7 +35,6 @@ class Group(BaseGroup):
 class Player(BasePlayer):
     sChoice = models.StringField()
     dRT_dec = models.FloatField()
-    iConfidence = models.IntegerField()
     dRT_conf = models.FloatField()
     P1 = models.IntegerField()
     P2 = models.IntegerField()
@@ -55,8 +48,6 @@ class Player(BasePlayer):
     sEndDec = models.StringField()
     sStartCross = models.StringField()
     sEndCross = models.StringField()
-    sStartConf = models.StringField()
-    sEndConf = models.StringField()
     sBetweenBtn = models.StringField()
     Product1 = models.IntegerField()
     Product2 = models.IntegerField()
@@ -75,7 +66,7 @@ def creating_session(subsession):
             # Select trial for payment
             p.iSelectedTrial = random.randint(C.NUM_PROUNDS + 1, C.NUM_ROUNDS)
 
-            # Generate 54 trials with equal likelihood of price conditions
+            # Generate 30 trials with specified combinations
             trials = generate_trials()
 
             # Assign the trials to the participant
@@ -89,8 +80,8 @@ def creating_session(subsession):
             # Practice Trials
             lValues = {
                 1: [1, 2, 1, 1, 1, 1],
-                2: [1, 1, 1, 2, 1, 1],
-                3: [1, 1, 1, 1, 1, 2]
+                2: [4, 5, 1, 2, 1, 1],
+                3: [8, 7, 1, 1, 1, 2]
             }.get(player.round_number, [1, 1, 1, 1, 1, 1])
             p.sTreatment = 'Practice'
             player.Product1, player.Product2 = 1, 2  # Practice products
@@ -107,44 +98,55 @@ def creating_session(subsession):
 
 
 def generate_trials():
-    # Initialize the combinations
-    combinations = []
+    # Define the valid combinations
+    combinations = [
+        # TruePrice and Label
+        {'values': [8, 8, 2, 1, 1, 2], 'condition': 'TruePrice', 'products': (1, 2)},
+        {'values': [8, 8, 3, 1, 2, 1], 'condition': 'TruePrice', 'products': (3, 4)},
+        {'values': [8, 8, 3, 2, 2, 1], 'condition': 'TruePrice', 'products': (5, 6)},
+        {'values': [8, 8, 2, 2, 2, 1], 'condition': 'TruePrice', 'products': (1, 2)},
+        
+        # TruePrice and Sustainability
+        {'values': [8, 7, 2, 1, 1, 1], 'condition': 'TruePrice', 'products': (3, 4)},
+        {'values': [9, 7, 2, 1, 1, 1], 'condition': 'TruePrice', 'products': (5, 6)},
+        {'values': [9, 8, 2, 1, 1, 1], 'condition': 'TruePrice', 'products': (1, 2)},
+        {'values': [7, 8, 2, 3, 1, 1], 'condition': 'TruePrice', 'products': (3, 4)},
+        {'values': [9, 7, 3, 2, 1, 1], 'condition': 'TruePrice', 'products': (5, 6)},
+        {'values': [9, 8, 3, 2, 1, 1], 'condition': 'TruePrice', 'products': (1, 2)},
+        
+        # PlainPrice and Label
+        {'values': [5, 5, 2, 1, 2, 1], 'condition': 'PlainPrice', 'products': (3, 4)},
+        {'values': [5, 5, 3, 1, 2, 1], 'condition': 'PlainPrice', 'products': (5, 6)},
+        {'values': [5, 5, 3, 2, 2, 1], 'condition': 'PlainPrice', 'products': (1, 2)},
+        {'values': [5, 5, 2, 2, 1, 2], 'condition': 'PlainPrice', 'products': (3, 4)},
 
-    # Define the price sets with image paths
-    price_sets = {
-        'TruePrice': ["7", "8", "9"],
-        'PlainPrice': ["4", "5", "6"],
-        'PriceRating': ["1", "2", "3"]
-    }
-    sustainability_values = ["1", "2", "3"]
-    credentials_values = ["1", "2"]  # Government and Commercial
-    product_pairs = [(1, 2), (3, 4), (5, 6)]
+        # PlainPrice and Sustainability
+        {'values': [5, 4, 2, 1, 1, 1], 'condition': 'PlainPrice', 'products': (5, 6)},
+        {'values': [6, 4, 2, 1, 1, 1], 'condition': 'PlainPrice', 'products': (1, 2)},
+        {'values': [6, 5, 2, 1, 1, 1], 'condition': 'PlainPrice', 'products': (3, 4)},
+        {'values': [5, 4, 3, 2, 1, 1], 'condition': 'PlainPrice', 'products': (5, 6)},
+        {'values': [4, 6, 2, 3, 1, 1], 'condition': 'PlainPrice', 'products': (1, 2)},
+        {'values': [6, 5, 3, 2, 1, 1], 'condition': 'PlainPrice', 'products': (3, 4)},
+        
+        # PriceRating and Label
+        {'values': [2, 2, 2, 1, 1, 2], 'condition': 'PriceRating', 'products': (5, 6)},
+        {'values': [2, 2, 3, 1, 1, 2], 'condition': 'PriceRating', 'products': (1, 2)},
+        {'values': [2, 2, 3, 2, 1, 2], 'condition': 'PriceRating', 'products': (3, 4)},
+        {'values': [2, 2, 2, 2, 2, 1], 'condition': 'PriceRating', 'products': (5, 6)},
 
-    # Generate trials for each price condition
-    for condition, price_set in price_sets.items():
-        for v1 in range(3):
-            for v2 in range(3):
-                if v1 != v2:
-                    # Generate trials where price and sustainability change
-                    for s1 in range(3):
-                        for s2 in range(3):
-                            if s1 != s2:
-                                values = [int(price_set[v1]), int(price_set[v2]), int(sustainability_values[s1]), int(sustainability_values[s2]), 1, 1]
-                                products = random.choice(product_pairs)
-                                combinations.append({'values': values, 'condition': condition, 'products': products})
-
-                    # Generate trials where price and label change
-                    for q1 in range(2):
-                        for q2 in range(2):
-                            if q1 != q2:
-                                values = [int(price_set[v1]), int(price_set[v2]), 1, 1, int(credentials_values[q1]), int(credentials_values[q2])]
-                                products = random.choice(product_pairs)
-                                combinations.append({'values': values, 'condition': condition, 'products': products})
+        # PriceRating and Sustainability
+        {'values': [2, 1, 2, 1, 1, 1], 'condition': 'PriceRating', 'products': (1, 2)},
+        {'values': [3, 1, 2, 1, 1, 1], 'condition': 'PriceRating', 'products': (3, 4)},
+        {'values': [3, 2, 2, 1, 1, 1], 'condition': 'PriceRating', 'products': (5, 6)},
+        {'values': [2, 1, 3, 2, 1, 1], 'condition': 'PriceRating', 'products': (1, 2)},
+        {'values': [3, 1, 3, 2, 1, 1], 'condition': 'PriceRating', 'products': (3, 4)},
+        {'values': [2, 3, 2, 3, 1, 1], 'condition': 'PriceRating', 'products': (5, 6)},
+    ]
 
     # Shuffle combinations to ensure random order
     random.shuffle(combinations)
 
-    return combinations[:54]  # Return only the first 54 combinations to meet the required number of trials
+    return combinations
 
 
 def attributeList(lValues, lPos, condition, product_pair):
@@ -244,19 +246,10 @@ class SideButton(Page):
         )
 
 
-class Confidence(Page):
-    form_model = 'player'
-    form_fields = ['sStartConf', 'sEndConf', 'dRT_conf', 'iConfidence']
-    template_name = 'global/Confidence.html'
-
-    @staticmethod
-    def vars_for_template(player: Player):
-        return dict(
-            lScale=list(range(1, C.iLikertConf + 1))
-        )
 
 
-page_sequence = [SideButton, Decision, Confidence, Message]
+
+page_sequence = [SideButton, Decision, Message]
 
 # Ensure that SESSION_CONFIGS includes the app
 SESSION_CONFIGS = [
