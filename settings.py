@@ -54,7 +54,7 @@ ROOMS = [
     dict(
         name='experimentfelix',
         display_name='Experiment Felix',
-        participant_label_file='_rooms/experimentfelix.txt',  # This file should contain the list of participant labels.
+        use_secure_urls=True,  # Automatically generate secure URLs for participants
     ),
 ]
 
