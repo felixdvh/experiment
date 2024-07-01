@@ -55,6 +55,7 @@ ROOMS = [
         name='experimentfelix',
         display_name='Experiment Felix',
         use_secure_urls=True,  # Automatically generate secure URLs for participants
+        participant_label_file=None,  # This should be set to None when use_secure_urls is True
     ),
 ]
 
